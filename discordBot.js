@@ -6,10 +6,12 @@ const fs = require('fs');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates], partials: [Partials.Channel] });
 
-const possAskAnswers = ['Yes', 'Obviously', 'Not Even Close', 'Not a chance', 'Well no shit', 'Hell nah'];
+const possAskAnswers = ['answers here'];
 
 client.on("ready", () => {
-    console.log('Online')
+    console.log('Online');
+
+    client.user.setActivity('!help');
 });
 
 const { Player, RepeatMode, ProgressBar, DMPError } = require('discord-music-player');
@@ -37,7 +39,7 @@ client.on('messageCreate', async message => {
         .setTimestamp()
 
     //Making sure the Bot didn't send the message
-    if (message.author != 1013615051535548498){
+    if (message.author != myTagHere){
         //Making sure message starts with the correct prefix
         if (message.content.startsWith('!')){
             let songChannelId = message.channel.id;
@@ -54,7 +56,7 @@ client.on('messageCreate', async message => {
                     const askAnswer = possAskAnswers[Math.floor(Math.random(0) * possAskAnswers.length)];
                     return message.reply(`${askAnswer}`);
                 case 'say':
-                    const usersWhoCanUseSay = ['556611856228286466', '537775857423613982', '514635522501771296', '695513302666838057'];
+                    const usersWhoCanUseSay = ['tags here'];
                     if (usersWhoCanUseSay.includes(message.author.id)){
                         //converts the message to a string, and makes it a list split by spaces
                         let msgToSay = message.content.toString().split(' ');
@@ -65,6 +67,7 @@ client.on('messageCreate', async message => {
                     }else{
                         return message.channel.send('Nice Try...');
                     }
+                case 'h':
                 case 'help':
                     //Creates the box that displays all of the commands
                     const helpBox = new Discord.EmbedBuilder()
@@ -75,24 +78,25 @@ client.on('messageCreate', async message => {
                         .setTimestamp()
                         .addFields(
                             { name: '!ask', value: 'Ask the bot any question', inline: false},
-                            { name: '!join', value: 'Makes TreyBot join vc (must currently be in vc)' },
-                            { name: '!play', value: 'Plays any song you put after this' },
+                            { name: '!join / !j', value: 'Makes TreyBot join vc (must currently be in vc)' },
+                            { name: '!play / !p', value: 'Plays any song you put after this' },
                             { name: '!playlist', value: 'Plays any playlist link you put after this' },
-                            { name: '!skip', value: 'Plays next thing in queue' },
+                            { name: '!skip / !s', value: 'Plays next thing in queue' },
                             { name: '!stop', value: 'Clears the queue and stops current song' },
-                            { name: '!shuffle', value: 'Shuffles current queue' },
-                            { name: '!queue', value: 'Shows the current queue (shows max of next 5 songs)' },
+                            { name: '!shuffle / !sh', value: 'Shuffles current queue' },
+                            { name: '!queue / !q', value: 'Shows the current queue (shows max of next 5 songs)' },
                             { name: '!quote', value: 'Random quote said by someone in the server'},
                             { name: '!exam', value: 'Put an exam after this and see what you got'},
-                            { name: '!help', value: 'You just used this command', inline: false}
+                            { name: '!help / !h', value: 'You just used this command', inline: false}
                         )
                         .setFooter({text: `${message.author.tag} Needed Some Help`})
 
                     return message.channel.send({embeds : [helpBox]});
+                case 'j':
                 case 'join':
                     //checks if the user is in a VC
                     if (message.member.voice.channel != null){
-                        //creats the voice connection, doesn't work well with the discord-music-player however
+                        //creates the voice connection, doesn't work well with the discord-music-player however
                         var voiceConnection = joinVoiceChannel({
                             channelId: message.member.voice.channel.id,
                             guildId: message.member.guild.id,
@@ -106,24 +110,26 @@ client.on('messageCreate', async message => {
                         return message.channel.send('`Must Be In A VC`');
                     }
                     break;
+                case 'p':
                 case 'play':
-
-                    if (message.author.id === "723928239361491067") return message.channel.send("No sus freestyles Ishaan...");
 
                     //Creates queue of songs
                     var playQueue = player.createQueue(message.guild.id);
+
+                    console.log(msgList.slice(1).toString().replace(/,/g, ' '));
+                    if (msgList.slice(1).toString()[0] == "<") return message.channel.send("\`NO EMOJIS!\`");
 
                     try {
                         //Takes the user message and plays the song from it
                         await playQueue.join(message.member.voice.channel);
                         var psong = await playQueue.play(msgList.slice(1).toString().replace(/,/g, ' ')).catch(err => {
-                            console.log(err);
-                            
+                            console.log(err); 
+
                             if(!guildQueue)
                                 playQueue.stop();
         
                         });
-                        
+
                         //checking if song is first in queue
                         if (!psong.isFirst) {
                             starterEmbed.addFields({ name: `Position In Queue: \`${guildQueue.songs.length - 1}\``, value: `${psong}`});
@@ -133,8 +139,6 @@ client.on('messageCreate', async message => {
                             starterEmbed.setFooter({ text: `Requested by ${message.author.tag }`});
                         }
 
-                        //logging the song, might have to change method of looking up song however
-                        console.log(msgList.slice(1).toString().replace(/,/g, ' '));
                         //Returns embedded message of song name and author
                         return message.channel.send({embeds : [starterEmbed]});
                     } catch {
@@ -162,6 +166,7 @@ client.on('messageCreate', async message => {
                     } catch {
                         return message.channel.send(`Playlist Not Found`);
                     }
+                case 'q':
                 case 'queue':
                     if (client.player.getQueue(message.guild.id)){
                         starterEmbed.setFooter({ text: `Called by ${message.author.tag}` })
@@ -209,6 +214,7 @@ client.on('messageCreate', async message => {
                         //If their is no queue
                         return message.channel.send('`No Active Queue`');
                     }
+                case 'sh':
                 case 'shuffle':
                     if (client.player.getQueue(message.guild.id)) {
                         message.react(`👍`)
@@ -216,6 +222,7 @@ client.on('messageCreate', async message => {
                     } else {
                         return message.channel.send(`\`No Active Queue\``)
                     }
+                case 's':
                 case 'skip':
                     //skips current song
                     message.react('👍');
@@ -267,7 +274,7 @@ client.on('messageCreate', async message => {
                     examScore = Math.floor(Math.random(0) * 101);
                     return message.channel.send(`\`You will get a ${examScore} on your ${exam}\``)
                 case 'quote':
-                    const quotes = [`"Hornswoggled" - Ishaan`, `"Frolicking through a field of tulips" - Trey`, `"The best part of christmas is putting a spy cam on the christmas tree" - Nolan`, `"I poisoned them with my goo" - Trey`, `"Not bad, cya" - Jensen`, `"Little holes are trash, i want big holes" - Thomas`, `"I'M HARD" - Ishaan`, `"It's like a bagel with no hole in it, but with a bunch of holes in it" - Nolan`, `"Certified teamkiller" - Ishaan`, `"Call me the boogeyman the way I prey on these teens" - Trey`, `"This is for my homies out in the slums of Mumbai" - Ishaan`, `"NOT 21 NOT 21 NOT 21" - Ishaan`, `"ABC EFG CAUSE ONLY BLAINE TAKES THE D" - Trey`, `"I'm doing the Muslim special of blowing up my home village" - Trey"`, `"I'mma give blaine this pipe" - Ishaan`, `"This dude just flicked on my ass" - Brandon`, `"smmerhong" - Blaine`];
+                    const quotes = ['quotes here'];
 
                     return message.channel.send(`${quotes[Math.floor(Math.random(0) * quotes.length)]}`)
                 case 'kick':
@@ -300,4 +307,4 @@ client.player
     })
     
 
-client.login(myLoginKey);
+client.login('myLoginCode');
