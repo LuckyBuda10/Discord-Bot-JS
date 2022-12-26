@@ -1,17 +1,16 @@
-const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, NoSubscriberBehavior, StreamType } = require('@discordjs/voice');
-const { channel } = require('diagnostics_channel');
-const { Client, GatewayIntentBits, Partials, quote } = require('discord.js');
+const { joinVoiceChannel} = require('@discordjs/voice');
+const { Client, GatewayIntentBits, Partials, quote} = require('discord.js');
 const Discord = require('discord.js');
 const fs = require('fs');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates], partials: [Partials.Channel] });
 
-const possAskAnswers = ['answers here'];
+const possAskAnswers = ['Yes', 'Obviously', 'Not Even Close', 'Not a chance'];
 
 client.on("ready", () => {
     console.log('Online');
 
-    client.user.setActivity('!help');
+    client.user.setActivity("!help");
 });
 
 const { Player, RepeatMode, ProgressBar, DMPError } = require('discord-music-player');
@@ -25,11 +24,8 @@ const player = new Player(client, {
 });
 
 let songChannel;
-let songChannelId;
 
 client.player = player;
-
-let starterEmbed = new Discord.EmbedBuilder();
 
 client.on('messageCreate', async message => {
     var guildQueue = client.player.getQueue(message.guild.id);
@@ -39,7 +35,7 @@ client.on('messageCreate', async message => {
         .setTimestamp()
 
     //Making sure the Bot didn't send the message
-    if (message.author != myTagHere){
+    if (message.author != 1013615051535548498){
         //Making sure message starts with the correct prefix
         if (message.content.startsWith('!')){
             let songChannelId = message.channel.id;
@@ -56,7 +52,7 @@ client.on('messageCreate', async message => {
                     const askAnswer = possAskAnswers[Math.floor(Math.random(0) * possAskAnswers.length)];
                     return message.reply(`${askAnswer}`);
                 case 'say':
-                    const usersWhoCanUseSay = ['tags here'];
+                    const usersWhoCanUseSay = ['556611856228286466', '537775857423613982', '514635522501771296', '695513302666838057', '709556954476838943'];
                     if (usersWhoCanUseSay.includes(message.author.id)){
                         //converts the message to a string, and makes it a list split by spaces
                         let msgToSay = message.content.toString().split(' ');
@@ -86,6 +82,7 @@ client.on('messageCreate', async message => {
                             { name: '!shuffle / !sh', value: 'Shuffles current queue' },
                             { name: '!queue / !q', value: 'Shows the current queue (shows max of next 5 songs)' },
                             { name: '!quote', value: 'Random quote said by someone in the server'},
+                            { name: `!add`, value: `Adds quote to a text file, will eventually get added by Trey`},
                             { name: '!exam', value: 'Put an exam after this and see what you got'},
                             { name: '!help / !h', value: 'You just used this command', inline: false}
                         )
@@ -112,7 +109,6 @@ client.on('messageCreate', async message => {
                     break;
                 case 'p':
                 case 'play':
-
                     //Creates queue of songs
                     var playQueue = player.createQueue(message.guild.id);
 
@@ -272,16 +268,26 @@ client.on('messageCreate', async message => {
                     let exam = message.content.toString().split(' ').join(' ').replace('!exam', '');
 
                     examScore = Math.floor(Math.random(0) * 101);
-                    return message.channel.send(`\`You will get a ${examScore} on your ${exam}\``)
+                    return message.channel.send(`\`You will get a ${examScore} on your ${exam}\``);
                 case 'quote':
-                    const quotes = ['quotes here'];
+                    const quotes = [(Quotes would go here)];
 
                     return message.channel.send(`${quotes[Math.floor(Math.random(0) * quotes.length)]}`)
+                case 'add':
+                    msgList.shift();
+                    let quoteToAdd = msgList.toString().replace(/,/g, ' ');
+
+                    fs.appendFile('newQuotes.txt', `${quoteToAdd} :${message.author.username}\n`, (err) => {
+                        if (err) throw err;
+                        console.log("Added Quote");
+                    });
+
+                    return message.channel.send("Quote Added to .txt File");
                 case 'kick':
                     const memberToKick = message.mentions.members.first();
                     if (!memberToKick.kickable) return message.channel.send(`Can't kick him sadly`);
                     memberToKick.kick();
-                    return message.channel.send(`${memberToKick} GOODBYE BACK TO THE LOBBY`);
+                    return message.channel.send(`${memberToKick} Got Kicked lmao`);
                 default:
                     //If the command isnt't one of the set cases (commands)
                     return message.reply('Invalid Command');
@@ -307,4 +313,4 @@ client.player
     })
     
 
-client.login('myLoginCode');
+client.login(myDiscordToken);
