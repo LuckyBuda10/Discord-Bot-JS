@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates], partials: [Partials.Channel] });
 
-const possAskAnswers = ['Yes', 'Obviously', 'Not Even Close', 'Not a chance'];
+const possAskAnswers = ['Yes', 'Obviously', 'Not Even Close', 'Not a chance', 'Well no shit', 'Hell nah'];
 
 client.on("ready", () => {
     console.log('Online');
@@ -26,6 +26,35 @@ const player = new Player(client, {
 let songChannel;
 
 client.player = player;
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+    if (oldState.member.user.bot) return;
+    
+    if (oldState.member.id == 537775857423613982)
+    {
+        if (newState.channelId === null || typeof newState.channelId === 'undefined')
+        {
+            return;
+        }
+        
+        let playQueue = player.createQueue(oldState.guild.id);
+
+        try {
+            //Takes the user message and plays the song from it
+            await playQueue.join(oldState.member.voice.channel);
+
+            var psong = await playQueue.play("Final Fantasy - Lil Uzi Vert").catch(err => {
+                console.log(err); 
+
+                if(!guildQueue)
+                    playQueue.stop();
+
+            });
+        } catch {
+            console.log("An error occured when trying to play the sound");
+        }
+    }
+});
 
 client.on('messageCreate', async message => {
     var guildQueue = client.player.getQueue(message.guild.id);
@@ -109,6 +138,9 @@ client.on('messageCreate', async message => {
                     break;
                 case 'p':
                 case 'play':
+
+                    //if (message.author.id === "723928239361491067") return message.channel.send("No sus freestyles Ishaan...");
+
                     //Creates queue of songs
                     var playQueue = player.createQueue(message.guild.id);
 
@@ -270,7 +302,7 @@ client.on('messageCreate', async message => {
                     examScore = Math.floor(Math.random(0) * 101);
                     return message.channel.send(`\`You will get a ${examScore} on your ${exam}\``);
                 case 'quote':
-                    const quotes = [(Quotes would go here)];
+                    const quotes = ["Quote Example"];
 
                     return message.channel.send(`${quotes[Math.floor(Math.random(0) * quotes.length)]}`)
                 case 'add':
@@ -313,4 +345,4 @@ client.player
     })
     
 
-client.login(myDiscordToken);
+client.login(myToken);
